@@ -25,30 +25,10 @@ node_modules
 
 
 ## IntelliJ IDEA
-.idea/workspace.xml
-.idea/tasks.xml
-.idea/dataSources/
-.idea/dataSources.local.xml
-.idea/sqlDataSources.xml
-.idea/shelf/
-.idea/gradle.xml
-.idea/libraries/
-.idea/vcs.xml
-.idea/compiler.xml
-.idea/jarRepositories.xml
-.idea/artifacts/
-.idea/dictionaries/
-.idea/runConfigurations/
+.idea/
 
 # Build artifacts
 out/
-build/
-
-# Maven
-target/
-
-# Gradle
-.gradle/
 build/
 
 # Logs
@@ -57,15 +37,6 @@ build/
 # Local history
 .history/
 
-# Thumbnails
-.idea/thumbnails/
-
 # External build files
 *.iml
 *.iws
-
-# Annotation processing
-target/generated-sources/annotations/
-
-# SonarLint
-.idea/sonarlint/

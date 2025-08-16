@@ -1,97 +1,77 @@
 /**
- * Definition for a binary tree node.
- * function TreeNode(val, left, right) {
- *     this.val = (val===undefined ? 0 : val)
- *     this.left = (left===undefined ? null : left)
- *     this.right = (right===undefined ? null : right)
- * }
+ * @param {number[][]} board
+ * @return {number}
  */
-/**
- * @param {TreeNode} root
- * @return {boolean}
- */
-var isSymmetric = function(root) {
-    let queue = [root.left, root.right];
+var snakesAndLadders = function(board) {
+    if (!board || !board.length || !board[0].length) return -1;
+
+    const rows = board.length;
+    const cols = board[0].length;
+
+    const getHorizontalDirection = (row) => {
+        return ((rows - 1 - row) % 2 === 0) ? 1 : -1; // -1 for right-to-left
+    }
+
+    const getRC = (cell) => {
+        let row = rows - Math.ceil(cell / cols);
+        let col = (cell - 1) % cols;
+        // Reversing cell column for odd rows (counting from bottom)
+        if (getHorizontalDirection(row) === -1) col = cols - 1 - col;
+
+        return [row, col];
+    }
+
+    const startCell = 1;
+    const queue = [startCell];
+
+    const visited = new Set();
+    visited.add(startCell);
+
+    let moves = -1;
 
     while (queue.length > 0) {
-        const levelLength = queue.length;
+        moves++;
 
-        if (levelLength % 2 === 1) {
-            return false;
-        }
+        const moveOptions = queue.length;
 
-        for (let i = 0; i < levelLength; i++) {
-            const left = queue.shift();
+        for (let i = 0; i < moveOptions; i++) {
+            const cell = queue.shift();
 
-            if (i < levelLength / 2) {
-                const right = queue[levelLength - 1 - (i + 1) * 2];
+            if (cell === rows * cols) {
+                return moves;
+            }
 
-                if (left && right && left.val !== right.val || (left && !right) || (!left && right)) {
-                    return false;
+            const [row, col] = getRC(cell);
+
+            if (board[row][col] === -1) {
+                for (let next = cell + 1; next <= Math.min(cell + 6, rows * cols); next++) {
+                    if (!visited.has(next)) {
+                        queue.push(next);
+                        visited.add(next);
+                    }
                 }
             }
-
-            if (left) {
-                queue.push(left.left);
-                queue.push(left.right);
+            else {
+                const next = board[row][col];
+                if (!visited.has(next)) {
+                    queue.push(next);
+                    visited.add(next);
+                }
             }
         }
     }
 
-    return true;
+    return -1;
 };
-
-
-class BinaryTreeNode {
-    constructor(val = 0, left = null, right = null) {
-        this.val   = val;
-        this.left  = left;
-        this.right = right;
-    }
-}
-
-function arrayToTree(arr) {
-    if (!arr.length) return null;
-
-    // 1) Create the root
-    const root = new BinaryTreeNode(arr[0]);
-    const queue = [root];
-    let i = 1;
-
-    // 2) For each real node, pull two slots from the array
-    while (i < arr.length && queue.length) {
-        const node = queue.shift();
-
-        // Left child
-        if (i < arr.length) {
-            const v = arr[i++];
-            if (v !== null) {
-                node.left = new BinaryTreeNode(v);
-                queue.push(node.left);
-            }
-        }
-
-        // Right child
-        if (i < arr.length) {
-            const v = arr[i++];
-            if (v !== null) {
-                node.right = new BinaryTreeNode(v);
-                queue.push(node.right);
-            }
-        }
-    }
-
-    return root;
-}
 
 
 const executionStart = Date.now();
 
 //----------------------------------------------------------
 
-const root = [2,3,3,4,5,5,4,null,null,8,9,9,8]
+const board = [[-1,-1,-1,-1,-1,-1],[-1,-1,-1,-1,-1,-1],[-1,-1,-1,-1,-1,-1],[-1,35,-1,-1,13,-1],[-1,-1,-1,-1,-1,-1],[-1,15,-1,-1,-1,-1]]
 
-const result = isSymmetric(arrayToTree(root));
+const result = snakesAndLadders(board);
 console.log(result);
 
 //----------------------------------------------------------

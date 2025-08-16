@@ -2304,3 +2304,973 @@ var buildTree = function(inorder, postorder) {
 // Time complexity: O(n)
 // Space complexity: O(n)
 
+
+/**
+ * 117. Populating Next Right Pointers in Each Node II
+ * https://leetcode.com/problems/populating-next-right-pointers-in-each-node-ii/
+ */
+
+// Given a binary tree
+// struct Node {
+//   int val;
+//   Node *left;
+//   Node *right;
+//   Node *next;
+// }
+// Populate each next pointer to point to its next right node.
+// If there is no next right node, the next pointer should be set to NULL.
+// Initially, all next pointers are set to NULL.
+//
+// Example 1:
+// Input: root = [1,2,3,4,5,null,7]
+// Output: [1,#,2,3,#,4,5,7,#]
+// Explanation: Given the above binary tree (Figure A), your function should populate each next pointer to point to its next right node, just like in Figure B. The serialized output is in level order as connected by the next pointers, with '#' signifying the end of each level.
+// Example 2:
+// Input: root = []
+// Output: []
+
+/**
+ * // Definition for a _Node.
+ * function _Node(val, left, right, next) {
+ *    this.val = val === undefined ? null : val;
+ *    this.left = left === undefined ? null : left;
+ *    this.right = right === undefined ? null : right;
+ *    this.next = next === undefined ? null : next;
+ * };
+ */
+
+/**
+ * @param {_Node} root
+ * @return {_Node}
+ */
+var connect = function(root) {
+    if (!root) {
+        return null;
+    }
+
+    // Classic BFS
+    const queue = [root];
+
+    while (queue.length > 0) {
+        const levelSize = queue.length;
+
+        // For each level of the tree set next pointer to the neighbor (except right-most node), then enqueue children
+        for (let i = 0; i < levelSize; i++) {
+            const node = queue.shift();
+            if (i < levelSize - 1) node.next = queue[0];    // Leave null for right-most node
+
+            // Enqueue children
+            if (node.left) queue.push(node.left);
+            if (node.right) queue.push(node.right);
+        }
+    }
+
+    return root;
+};
+// Time complexity: O(n)
+// Space complexity: O(n)
+
+
+// O(1) space approach
+// Walk the current level using next.
+// While walking, build the next level using a temporary dummy head + tail.
+// After finishing a level, jump to dummy.next (the first node of the next level).
+
+var connect = function(root) {
+    if (!root) return null;
+
+    // cur walks the current level using already-set .next pointers
+    let cur = root;
+
+    while (cur) {
+        // Build the next level using a dummy head and a moving tail
+        const dummy = new Node(0);
+        let tail = dummy;
+
+        // Traverse current level
+        for (let node = cur; node !== null; node = node.next) {
+            if (node.left) {
+                tail.next = node.left;
+                tail = tail.next;
+            }
+            if (node.right) {
+                tail.next = node.right;
+                tail = tail.next;
+            }
+        }
+
+        // Move to the first node of the next level
+        cur = dummy.next;
+    }
+
+    return root;
+};
+// Time complexity: O(n)
+// Space complexity: O(1)
+
+
+/**
+ * 114. Flatten Binary Tree to Linked List
+ * https://leetcode.com/problems/flatten-binary-tree-to-linked-list/
+ */
+
+// Given the root of a binary tree, flatten the tree into a "linked list":
+// The "linked list" should use the same TreeNode class where the right child pointer points to
+// the next node in the list and the left child pointer is always null.
+// The "linked list" should be in the same order as a pre-order traversal of the binary tree.
+//
+// Example 1:
+// Input: root = [1,2,5,3,4,null,6]
+// Output: [1,null,2,null,3,null,4,null,5,null,6]
+// Example 2:
+// Input: root = []
+// Output: []
+// Example 3:
+// Input: root = [0]
+// Output: [0]
+
+
+/**
+ * Definition for a binary tree node.
+ * function TreeNode(val, left, right) {
+ *     this.val = (val===undefined ? 0 : val)
+ *     this.left = (left===undefined ? null : left)
+ *     this.right = (right===undefined ? null : right)
+ * }
+ */
+/**
+ * @param {TreeNode} root
+ * @return {void} Do not return anything, modify root in-place instead.
+ */
+var flatten = function(root) {
+    // Recursive approach with right-to left traversal
+
+    let prevNode = null; // Left-most node of the parsed list
+
+    const flattenHelper = (node) => {
+        if (!node) return;
+
+        // Recursively traverse right-to-left
+        flattenHelper(node.right);
+        flattenHelper(node.left);
+
+        // Pluck the list to right node, reset left
+        node.right = prevNode;
+        node.left = null;
+        prevNode = node;    // Set left-most pointer to current
+    }
+
+    flattenHelper(root);
+
+    return root;
+};
+// Time complexity: O(n)
+// Space complexity: O(n)
+
+
+// Alternative approach with left-to-right traversal
+// Similar idea, two local pointers
+
+/**
+ * Definition for a binary tree node.
+ * function TreeNode(val, left, right) {
+ *     this.val = (val===undefined ? 0 : val)
+ *     this.left = (left===undefined ? null : left)
+ *     this.right = (right===undefined ? null : right)
+ * }
+ */
+/**
+ * @param {TreeNode} root
+ * @return {void} Do not return anything, modify root in-place instead.
+ */
+var flatten = function(root) {
+    const flattenHelper = (node) => {
+        // Base condition - leaf or null
+        if (!node || !node.left && !node.right) return node;
+
+        let head = null; // Left-most node of the list (in current scope)
+        let tail = null; // Right-most node of the list (in current scope)
+
+        // Visit left subtree first if exists
+        if (node.left) {
+            head = node.left;
+            tail = flattenHelper(node.left);
+        }
+
+        // Visit right subtree next if exists
+        if (node.right) {
+            // If left subtree exists, pluck this node to the list made of left subtree
+            if (tail)   tail.right = node.right;
+            // Otherwise we don't have a list and will start it from this node
+            else        head = node.right;
+
+            // New head will be the last node in this list
+            tail = flattenHelper(node.right);
+        }
+
+        // Reassign nodes
+        node.left = null;
+        node.right = head;
+
+        return tail; // Return right-most node of the new list
+    }
+
+    flattenHelper(root);
+
+    return root;
+};
+// Time complexity: O(n)
+// Space complexity: O(n)
+
+
+// Follow-up: O(1) extra space (Morris-style rewiring)
+// For every node with a left child, find the rightmost node of its left subtree and
+// splice the original right subtree there; then move left to right.
+var flatten = function(root) {
+    let cur = root;
+
+    while (cur) {
+        if (cur.left) {
+            // Find rightmost of left subtree
+            let pred = cur.left;
+            while (pred.right) pred = pred.right;
+
+            // Splice: right subtree goes after left's rightmost
+            pred.right = cur.right;
+            cur.right = cur.left;
+            cur.left = null;
+        }
+        cur = cur.right;
+    }
+};
+// Time complexity: O(n)
+// Space complexity: O(1)
+
+
+/**
+ * 129. Sum Root to Leaf Numbers
+ * https://leetcode.com/problems/sum-root-to-leaf-numbers/
+ */
+
+// You are given the root of a binary tree containing digits from 0 to 9 only.
+// Each root-to-leaf path in the tree represents a number.
+// For example, the root-to-leaf path 1 -> 2 -> 3 represents the number 123.
+// Return the total sum of all root-to-leaf numbers. Test cases are generated so that the answer will fit in a 32-bit integer.
+// A leaf node is a node with no children.
+//
+// Example 1:
+// Input: root = [1,2,3]
+// Output: 25
+// Explanation:
+// The root-to-leaf path 1->2 represents the number 12.
+// The root-to-leaf path 1->3 represents the number 13.
+// Therefore, sum = 12 + 13 = 25.
+// Example 2:
+// Input: root = [4,9,0,5,1]
+// Output: 1026
+// Explanation:
+// The root-to-leaf path 4->9->5 represents the number 495.
+// The root-to-leaf path 4->9->1 represents the number 491.
+// The root-to-leaf path 4->0 represents the number 40.
+// Therefore, sum = 495 + 491 + 40 = 1026.
+
+/**
+ * Definition for a binary tree node.
+ * function TreeNode(val, left, right) {
+ *     this.val = (val===undefined ? 0 : val)
+ *     this.left = (left===undefined ? null : left)
+ *     this.right = (right===undefined ? null : right)
+ * }
+ */
+/**
+ * @param {TreeNode} root
+ * @return {number}
+ */
+var sumNumbers = function(root) {
+    // Classic DFS
+    const calculateRTL = (node, pathNumber) => {
+        if (!node) return 0;
+
+        // Shift top-level number digits and add current value
+        pathNumber = (pathNumber * 10) + node.val;
+
+        // Base condition: leaf
+        if (!node.left && !node.right) return pathNumber;
+
+        // Calculate recursively for children
+        return calculateRTL(node.left, pathNumber) + calculateRTL(node.right, pathNumber);
+    }
+
+    return calculateRTL(root, 0);
+};
+// Time complexity: O(n)
+// Space complexity: O(n)
+
+
+/**
+ * 173. Binary Search Tree Iterator
+ * https://leetcode.com/problems/binary-search-tree-iterator/
+ */
+
+// Implement the BSTIterator class that represents an iterator over the in-order traversal of a binary search tree (BST):
+// BSTIterator(TreeNode root) Initializes an object of the BSTIterator class. The root of the BST is given as part of the constructor.
+// The pointer should be initialized to a non-existent number smaller than any element in the BST.
+// boolean hasNext() Returns true if there exists a number in the traversal to the right of the pointer, otherwise returns false.
+// int next() Moves the pointer to the right, then returns the number at the pointer.
+// Notice that by initializing the pointer to a non-existent smallest number, the first call to next() will return the smallest element in the BST.
+// You may assume that next() calls will always be valid. That is, there will be at least a next number in the in-order traversal when next() is called.
+//
+// Example 1:
+// Input
+// ["BSTIterator", "next", "next", "hasNext", "next", "hasNext", "next", "hasNext", "next", "hasNext"]
+// [[[7, 3, 15, null, null, 9, 20]], [], [], [], [], [], [], [], [], []]
+// Output
+// [null, 3, 7, true, 9, true, 15, true, 20, false]
+//
+// Explanation
+// BSTIterator bSTIterator = new BSTIterator([7, 3, 15, null, null, 9, 20]);
+// bSTIterator.next();    // return 3
+// bSTIterator.next();    // return 7
+// bSTIterator.hasNext(); // return True
+// bSTIterator.next();    // return 9
+// bSTIterator.hasNext(); // return True
+// bSTIterator.next();    // return 15
+// bSTIterator.hasNext(); // return True
+// bSTIterator.next();    // return 20
+// bSTIterator.hasNext(); // return False
+
+
+// ------------ Optimal interview solution (lazy traversal, O(h) space)
+
+/**
+ * Definition for a binary tree node.
+ * function TreeNode(val, left, right) {
+ *     this.val = (val===undefined ? 0 : val)
+ *     this.left = (left===undefined ? null : left)
+ *     this.right = (right===undefined ? null : right)
+ * }
+ */
+/**
+ * @param {TreeNode} root
+ */
+var BSTIterator = function(root) {
+    this.traversalStack = [];   // Lazy traversal stack
+    this._pushLeft(root);       // Traverse left nodes until get to first in-order node
+};
+
+BSTIterator.prototype._pushLeft = function(node) {
+    // Lazy traversal of left nodes
+    while (node) {
+        this.traversalStack.push(node);
+        node = node.left;
+    }
+};
+
+/**
+ * @return {number}
+ */
+BSTIterator.prototype.next = function() {
+    // Current node for in-order traversal
+    const currNode = this.traversalStack.pop();
+
+    // Continue lazy traversal for the right subtree
+    if (currNode.right) this._pushLeft(currNode.right);
+
+    return currNode.val;
+};
+
+/**
+ * @return {boolean}
+ */
+BSTIterator.prototype.hasNext = function() {
+    return this.traversalStack.length > 0;
+};
+
+/**
+ * Your BSTIterator object will be instantiated and called as such:
+ * var obj = new BSTIterator(root)
+ * var param_1 = obj.next()
+ * var param_2 = obj.hasNext()
+ */
+
+// Time complexity: O(n) build, amortized O(1) for ops next(), hasNext()
+// Space complexity: O(h) - stack up to the height of the tree
+
+
+
+// ------------ Semi-naive approach: build full inorder traversal array, iterate through the array
+
+/**
+ * Definition for a binary tree node.
+ * function TreeNode(val, left, right) {
+ *     this.val = (val===undefined ? 0 : val)
+ *     this.left = (left===undefined ? null : left)
+ *     this.right = (right===undefined ? null : right)
+ * }
+ */
+/**
+ * @param {TreeNode} root
+ */
+var BSTIterator = function(root) {
+    const buildInOrder = (node, inorder = []) => {
+        if (!node) return;
+
+        buildInOrder(node.left, inorder);
+        inorder.push(node);
+        buildInOrder(node.right, inorder);
+
+        return inorder;
+    }
+
+    this.current = -1;
+    this.inorder = buildInOrder(root);
+};
+
+/**
+ * @return {number}
+ */
+BSTIterator.prototype.next = function() {
+    return this.inorder[++this.current].val;
+};
+
+/**
+ * @return {boolean}
+ */
+BSTIterator.prototype.hasNext = function() {
+    return this.current < this.inorder.length - 1;
+};
+
+/**
+ * Your BSTIterator object will be instantiated and called as such:
+ * var obj = new BSTIterator(root)
+ * var param_1 = obj.next()
+ * var param_2 = obj.hasNext()
+ */
+
+// Time complexity: O(n)
+// Space complexity: O(n)
+
+
+/**
+ * 222. Count Complete Tree Nodes
+ * https://leetcode.com/problems/count-complete-tree-nodes/
+ */
+
+// Given the root of a complete binary tree, return the number of the nodes in the tree.
+// According to Wikipedia, every level, except possibly the last, is completely filled in a complete binary tree,
+// and all nodes in the last level are as far left as possible. It can have between 1 and 2h nodes inclusive at the last level h.
+// Design an algorithm that runs in less than O(n) time complexity.
+//
+// Example 1:
+// Input: root = [1,2,3,4,5,6]
+// Output: 6
+// Example 2:
+// Input: root = []
+// Output: 0
+// Example 3:
+// Input: root = [1]
+// Output: 1
+
+/**
+ * Definition for a binary tree node.
+ * function TreeNode(val, left, right) {
+ *     this.val = (val===undefined ? 0 : val)
+ *     this.left = (left===undefined ? null : left)
+ *     this.right = (right===undefined ? null : right)
+ * }
+ */
+/**
+ * @param {TreeNode} root
+ * @return {number}
+ */
+var countNodes = function(root) {
+    // Gets depth by going only left/right
+    const calculateDepth = (node, direction = "left") => {
+        let depth = 0;
+        for (let n = node; n !== null; n = n[direction]) depth++;
+        return depth;
+    }
+
+    const calculateNodes = (node) => {
+        if (!node) return 0;
+
+        // Get left and right depths
+        const depthLeft = calculateDepth(node, "left");
+        const depthRight = calculateDepth(node, "right");
+
+        // Perfect subtree, return full nodes count n = 2^(h + 1), h starts from 0, our depth = h + 1
+        if (depthLeft === depthRight) return Math.pow(2, depthLeft) - 1; // show off: (1 << depthLeft) - 1;
+
+        // Right subtree is smaller,
+        return 1 + calculateNodes(node.left) + calculateNodes(node.right);
+    }
+
+    return calculateNodes(root);
+};
+// Time complexity: O((log n)^2): each level you compute heights in O(log n), and you do it down O(log n) levels
+// Space complexity: O(log n) for recursion stack
+
+
+/**
+ * 236. Lowest Common Ancestor of a Binary Tree
+ * https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree/
+ */
+
+// Given a binary tree, find the lowest common ancestor (LCA) of two given nodes in the tree.
+// According to the definition of LCA on Wikipedia:
+// “The lowest common ancestor is defined between two nodes p and q as the lowest node in T that has
+// both p and q as descendants (where we allow a node to be a descendant of itself).”
+//
+// Example 1:
+// Input: root = [3,5,1,6,2,0,8,null,null,7,4], p = 5, q = 1
+// Output: 3
+// Explanation: The LCA of nodes 5 and 1 is 3.
+// Example 2:
+// Input: root = [3,5,1,6,2,0,8,null,null,7,4], p = 5, q = 4
+// Output: 5
+// Explanation: The LCA of nodes 5 and 4 is 5, since a node can be a descendant of itself according to the LCA definition.
+// Example 3:
+// Input: root = [1,2], p = 1, q = 2
+// Output: 1
+
+/**
+ * Definition for a binary tree node.
+ * function TreeNode(val) {
+ *     this.val = val;
+ *     this.left = this.right = null;
+ * }
+ */
+/**
+ * @param {TreeNode} root
+ * @param {TreeNode} p
+ * @param {TreeNode} q
+ * @return {TreeNode}
+ */
+var lowestCommonAncestor = function(root, p, q) {
+    // Return either:
+    // null — neither target found in this subtree,
+    // p or q — the target found,
+    // or the LCA node if both sides returned non-null
+    if (!root || root === p || root === q) return root;
+
+    // Recursively search subtrees
+    const left = lowestCommonAncestor(root.left, p, q);
+    const right = lowestCommonAncestor(root.right, p, q);
+
+    if (left && right) return root; // Return LCA when both sides are found
+    return left || right;           // Return whatever was found (or null if neither)
+};
+// Time complexity: O(n)
+// Space complexity: O(h) tree height, worst case - O(n)
+
+
+/**
+ * 637. Average of Levels in Binary Tree
+ * https://leetcode.com/problems/average-of-levels-in-binary-tree/
+ */
+
+// Given the root of a binary tree, return the average value of the nodes on each level in the form of an array.
+// Answers within 10-5 of the actual answer will be accepted.
+//
+// Example 1:
+// Input: root = [3,9,20,null,null,15,7]
+// Output: [3.00000,14.50000,11.00000]
+// Explanation: The average value of nodes on level 0 is 3, on level 1 is 14.5, and on level 2 is 11.
+// Hence return [3, 14.5, 11].
+// Example 2:
+// Input: root = [3,9,20,15,7]
+// Output: [3.00000,14.50000,11.00000]
+
+/**
+ * Definition for a binary tree node.
+ * function TreeNode(val, left, right) {
+ *     this.val = (val===undefined ? 0 : val)
+ *     this.left = (left===undefined ? null : left)
+ *     this.right = (right===undefined ? null : right)
+ * }
+ */
+/**
+ * @param {TreeNode} root
+ * @return {number[]}
+ */
+var averageOfLevels = function(root) {
+    // Classic BFS
+    if (!root) return [];
+
+    const result = [];
+    const queue = [root];
+
+    while (queue.length > 0) {
+        const levelSize = queue.length;
+        let levelSum = 0; // Sum up all values per level
+
+        for (let i = 0; i < levelSize; i++) {
+            const node = queue.shift();
+            levelSum += node.val;
+
+            if (node.left) queue.push(node.left);
+            if (node.right) queue.push(node.right);
+        }
+
+        // Average = sum / count
+        result.push(levelSum / levelSize);
+    }
+
+    return result;
+};
+// Time complexity: O(n)
+// Space complexity: O(n)
+
+
+/**
+ * 102. Binary Tree Level Order Traversal
+ * https://leetcode.com/problems/binary-tree-level-order-traversal/
+ */
+
+// Given the root of a binary tree, return the level order traversal of its nodes' values. (i.e., from left to right, level by level).
+//
+// Example 1:
+// Input: root = [3,9,20,null,null,15,7]
+// Output: [[3],[9,20],[15,7]]
+// Example 2:
+// Input: root = [1]
+// Output: [[1]]
+// Example 3:
+// Input: root = []
+// Output: []
+
+/**
+ * Definition for a binary tree node.
+ * function TreeNode(val, left, right) {
+ *     this.val = (val===undefined ? 0 : val)
+ *     this.left = (left===undefined ? null : left)
+ *     this.right = (right===undefined ? null : right)
+ * }
+ */
+/**
+ * @param {TreeNode} root
+ * @return {number[][]}
+ */
+var levelOrder = function(root) {
+    // Classic BFS
+    if (!root) return [];
+
+    const result = [];
+    const queue = [root];
+
+    while (queue.length) {
+        const levelSize = queue.length;
+        const levelValues = [];
+
+        // Level by level loops
+        for (let i = 0; i < levelSize; i++) {
+            const node = queue.shift();
+            levelValues.push(node.val);
+
+            if (node.left) queue.push(node.left);
+            if (node.right) queue.push(node.right);
+        }
+
+        // All values for the current level
+        result.push(levelValues);
+    }
+
+    return result;
+};
+// Time complexity: O(n)
+// Space complexity: O(n)
+
+
+/**
+ * 103. Binary Tree Zigzag Level Order Traversal
+ * https://leetcode.com/problems/binary-tree-zigzag-level-order-traversal/
+ */
+
+/**
+ * Definition for a binary tree node.
+ * function TreeNode(val, left, right) {
+ *     this.val = (val===undefined ? 0 : val)
+ *     this.left = (left===undefined ? null : left)
+ *     this.right = (right===undefined ? null : right)
+ * }
+ */
+/**
+ * @param {TreeNode} root
+ * @return {number[][]}
+ */
+var zigzagLevelOrder = function(root) {
+    if (!root) return [];
+
+    const result = [];
+    const queue = [root];
+
+    // Current tree level, root = 0
+    let level = 0;
+
+    while (queue.length > 0) {
+        const levelSize = queue.length;
+        const levelNodes = [];
+
+        // Processing node on the current level
+        for (let i = 0; i < levelSize; i++) {
+            let node = queue.shift();
+
+            // Even levels left to right
+            if (level % 2 === 0) levelNodes.push(node.val);
+            // Odd levels right to left
+            else                 levelNodes.unshift(node.val);
+
+            if (node.left)  queue.push(node.left);
+            if (node.right) queue.push(node.right);
+        }
+
+        // Adding the traversed values to the result
+        result.push(levelNodes);
+        level++;
+    }
+
+    return result;
+};
+// Time complexity: O(n)
+// Space complexity: O(n)
+
+
+/**
+ * 530. Minimum Absolute Difference in BST
+ * https://leetcode.com/problems/minimum-absolute-difference-in-bst/
+ */
+
+// Given the root of a Binary Search Tree (BST), return the minimum absolute difference between the values of any two different nodes in the tree.
+//
+// Example 1:
+// Input: root = [4,2,6,1,3]
+// Output: 1
+// Example 2:
+// Input: root = [1,0,48,null,null,12,49]
+// Output: 1
+
+/**
+ * Definition for a binary tree node.
+ * function TreeNode(val, left, right) {
+ *     this.val = (val===undefined ? 0 : val)
+ *     this.left = (left===undefined ? null : left)
+ *     this.right = (right===undefined ? null : right)
+ * }
+ */
+/**
+ * @param {TreeNode} root
+ * @return {number}
+ */
+var getMinimumDifference = function(root) {
+    let prevVal = null;
+    let minDiff = Infinity;
+
+    // DFS with global Previous Value and result
+    // For BST we're using in-order traversal: left - root - right
+    const getMinDiff = (node) => {
+        if (!node) return;
+
+        getMinDiff(node.left);  // Left subtree
+
+        // prevVal is always less or equal, calculate min diff on this step
+        if (prevVal !== null) minDiff = Math.min(minDiff, node.val - prevVal);
+        prevVal = node.val;
+
+        getMinDiff(node.right); // Right subtree
+    }
+
+    getMinDiff(root);
+    return minDiff;
+};
+// Time complexity: O(n)
+// Space complexity: O(n) worst case, O(log n) if balanced
+
+
+/**
+ * 230. Kth Smallest Element in a BST
+ * https://leetcode.com/problems/kth-smallest-element-in-a-bst/
+ */
+
+// Given the root of a binary search tree, and an integer k,
+// return the kth smallest value (1-indexed) of all the values of the nodes in the tree.
+// Example 1:
+// Input: root = [3,1,4,null,2], k = 1
+// Output: 1
+// Example 2:
+// Input: root = [5,3,6,2,4,null,null,1], k = 3
+// Output: 3
+
+/**
+ * Definition for a binary tree node.
+ * function TreeNode(val, left, right) {
+ *     this.val = (val===undefined ? 0 : val)
+ *     this.left = (left===undefined ? null : left)
+ *     this.right = (right===undefined ? null : right)
+ * }
+ */
+/**
+ * @param {TreeNode} root
+ * @param {number} k
+ * @return {number}
+ */
+var kthSmallest = function(root, k) {
+    let result = 0;
+
+    // DFS for in-order traversal
+    const dfs = (node) => {
+        if (!node) return false;
+
+        if (dfs(node.left)) return true;  // Found in left
+
+        // When k == 0, we found the item (counting backwards)
+        // Compare and decrease in one line
+        if (--k === 0) {
+            result = node.val;
+            return true;
+        }
+
+        return dfs(node.right); // Found in right
+    }
+
+    dfs(root);
+    return result;
+};
+// Time complexity: O(n)
+// Space complexity: O(n)
+
+
+/**
+ * 399. Evaluate Division
+ * https://leetcode.com/problems/evaluate-division/
+ */
+
+// You are given an array of variable pairs equations and an array of real numbers values, where equations[i] = [Ai, Bi]
+// and values[i] represent the equation Ai / Bi = values[i]. Each Ai or Bi is a string that represents a single variable.
+// You are also given some queries, where queries[j] = [Cj, Dj] represents the jth query where you must find the answer for Cj / Dj = ?.
+// Return the answers to all queries. If a single answer cannot be determined, return -1.0.
+// Note: The input is always valid. You may assume that evaluating the queries will not result in division by zero and that there is no contradiction.
+// Note: The variables that do not occur in the list of equations are undefined, so the answer cannot be determined for them.
+//
+// Example 1:
+// Input: equations = [["a","b"],["b","c"]], values = [2.0,3.0], queries = [["a","c"],["b","a"],["a","e"],["a","a"],["x","x"]]
+// Output: [6.00000,0.50000,-1.00000,1.00000,-1.00000]
+// Explanation:
+// Given: a / b = 2.0, b / c = 3.0
+// queries are: a / c = ?, b / a = ?, a / e = ?, a / a = ?, x / x = ?
+// return: [6.0, 0.5, -1.0, 1.0, -1.0 ]
+// note: x is undefined => -1.0
+// Example 2:
+// Input: equations = [["a","b"],["b","c"],["bc","cd"]], values = [1.5,2.5,5.0], queries = [["a","c"],["c","b"],["bc","cd"],["cd","bc"]]
+// Output: [3.75000,0.40000,5.00000,0.20000]
+// Example 3:
+// Input: equations = [["a","b"]], values = [0.5], queries = [["a","b"],["b","a"],["a","c"],["x","y"]]
+// Output: [0.50000,2.00000,-1.00000,-1.00000]
+
+/**
+ * @param {string[][]} equations
+ * @param {number[]} values
+ * @param {string[][]} queries
+ * @return {number[]}
+ */
+var calcEquation = function(equations, values, queries) {
+    // Buidling Adjacency Map with edge weights
+    // Query can be calculated as multiplication of all edges on the path
+    const adjMap = {};
+
+    for (let i = 0; i < equations.length; i++) {
+        const [v1, v2] = equations[i];
+        adjMap[v1] ||= [];
+        adjMap[v1].push([v2, values[i]]);
+        // Reverse edge will have 1 / val weight
+        adjMap[v2] ||= [];
+        adjMap[v2].push([v1, 1 / values[i]]);
+    }
+
+    // Classic DFS on a graph
+    const dfs = (start, end, visited, mult = 1) => {
+        if (!adjMap[start]) return -1;
+        if (visited.has(start)) return -1;
+        if (start === end) return mult;
+
+        visited.add(start);
+
+        for (const [v, val] of adjMap[start]) {
+            const result = dfs(v, end, visited, mult * val);
+            if (result !== -1) return result;
+        }
+
+        return -1;
+    }
+
+    const output = [];
+
+    for (let [start, end] of queries) {
+        // We reset the visited items set for each query
+        output.push(dfs(start, end, new Set()));
+    }
+
+    return output;
+};
+// Time complexity: O(e * q) where e - equations and q - queries
+// Space complexity: O(e * q)
+
+
+/**
+ * @param {number[][]} board
+ * @return {number}
+ */
+var snakesAndLadders = function(board) {
+    if (!board || !board.length || !board[0].length) return -1;
+
+    const rows = board.length;
+    const cols = board[0].length;
+
+    // Convert cenn number to row and col
+    const getRC = (cell) => {
+        let row = rows - Math.ceil(cell / cols); // Row from bottom
+        let col = (cell - 1) % cols; // Column from left
+        // Reversing cell column for right-to-left rows
+        if ((rows - 1 - row) % 2 !== 0) {
+            col = cols - 1 - col;
+        }
+
+        return [row, col];
+    }
+
+    // BFS start setup
+    const startCell = 1;
+    const queue = [startCell];
+
+    const visited = new Set();
+    visited.add(startCell);
+
+    let moves = -1;
+
+    while (queue.length > 0) {
+        moves++;
+        const bfsLength = queue.length;
+
+        for (let i = 0; i < bfsLength; i++) {
+            let cell = queue.shift();
+
+            if (cell === rows * cols) return moves; // Found target
+
+            // Enqueing next 6 cells (or where they are portalling to)
+            for (let step = cell + 1; step <= Math.min(cell + 6, rows * cols); step++) {
+                let next = step;
+                const [r, c] = getRC(next);
+                // If it's a ladder or snake, enqueue destination
+                if (board[r][c] !== -1) next = board[r][c];
+                // Enqueue if not visited yet
+                if (!visited.has(next)) {
+                    queue.push(next);
+                    visited.add(next);
+                }
+            }
+        }
+    }
+
+    return -1;
+};
+// Time complexity: O(n^2) - board is n x n
+// Space complexity: O(n^2)

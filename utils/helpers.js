@@ -501,5 +501,20 @@ class TupleMaxHeap {
     // heap.heapify(arr);
 }
 
+/**
+ * Proper queue implementation with O(1) ops
+ */
+
+class Queue {
+    constructor() {
+        this._a = [];
+        this._h = 0;
+    }
+    enqueue(x) { this._a.push(x); }
+    dequeue() { return this._a[this._h++]; }
+    peak() { return this._a[this._h]; }
+    isEmpty() { return this._h >= this._a.length; }
+    size() { return this._a.length - this._h; }
+}
 
 

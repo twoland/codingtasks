@@ -3274,3 +3274,1575 @@ var snakesAndLadders = function(board) {
 };
 // Time complexity: O(n^2) - board is n x n
 // Space complexity: O(n^2)
+
+
+/**
+ * 433. Minimum Genetic Mutation
+ * https://leetcode.com/problems/minimum-genetic-mutation/
+ */
+
+// A gene string can be represented by an 8-character long string, with choices from 'A', 'C', 'G', and 'T'.
+// Suppose we need to investigate a mutation from a gene string startGene to a gene string endGene where one mutation is defined as one single character changed in the gene string.
+// For example, "AACCGGTT" --> "AACCGGTA" is one mutation.
+// There is also a gene bank bank that records all the valid gene mutations. A gene must be in bank to make it a valid gene string.
+// Given the two gene strings startGene and endGene and the gene bank bank, return the minimum number of mutations needed to mutate from startGene to endGene. If there is no such a mutation, return -1.
+// Note that the starting point is assumed to be valid, so it might not be included in the bank.
+//
+// Example 1:
+// Input: startGene = "AACCGGTT", endGene = "AACCGGTA", bank = ["AACCGGTA"]
+// Output: 1
+// Example 2:
+// Input: startGene = "AACCGGTT", endGene = "AAACGGTA", bank = ["AACCGGTA","AACCGCTA","AAACGGTA"]
+// Output: 2
+
+/**
+ * @param {string} startGene
+ * @param {string} endGene
+ * @param {string[]} bank
+ * @return {number}
+ */
+var minMutation = function(startGene, endGene, bank) {
+    const GENE_LENGTH = 8;
+    const ALPHABET = ['A', 'C', 'G', 'T'];
+
+    if (startGene === endGene) return 0;
+
+    const bankSet = new Set(bank);
+    if (!bankSet.has(endGene)) return -1;
+
+    const queue = [startGene];
+    const visited = new Set([startGene]);
+
+    let steps = 0;
+
+    while (queue.length > 0) {
+        steps++;
+        const levelSize = queue.length;
+
+        for (let i = 0; i < levelSize; i++) {
+            const gene = queue.shift();
+
+            // We'll try to change every letter of the gene to another one and perform BFS
+            for (let pos = 0; pos < GENE_LENGTH; pos++) {
+                for (const char of ALPHABET) {
+                    if (char === gene[pos]) continue; // Skip current letter
+                    const nextGene = gene.slice(0, pos) + char + gene.slice(pos + 1);
+
+                    if (nextGene === endGene) return steps; // Early detection
+
+                    // Enqueue if allowed and never checked
+                    if (bankSet.has(nextGene) && !visited.has(nextGene)) {
+                        queue.push(nextGene);
+                        visited.add(nextGene);
+                    }
+                }
+            }
+        }
+    }
+
+    return -1;
+};
+// Time complexity: O(B) where B is bank size
+// Space complexity: O(B) where B is bank size
+
+
+/**
+ * 17. Letter Combinations of a Phone Number
+ * https://leetcode.com/problems/letter-combinations-of-a-phone-number/
+ */
+
+// Given a string containing digits from 2-9 inclusive, return all possible letter combinations that the number could represent. Return the answer in any order.
+// A mapping of digits to letters (just like on the telephone buttons) is given below. Note that 1 does not map to any letters.
+//
+// Example 1:
+// Input: digits = "23"
+// Output: ["ad","ae","af","bd","be","bf","cd","ce","cf"]
+// Example 2:
+// Input: digits = ""
+// Output: []
+// Example 3:
+// Input: digits = "2"
+// Output: ["a","b","c"]
+
+/**
+ * @param {string} digits
+ * @return {string[]}
+ */
+var letterCombinations = function(digits) {
+    if (!digits || digits.length === 0) return [];
+
+    const MAPPING = { '2': 'abc', '3': 'def', '4': 'ghi', '5': 'jkl', '6': 'mno', '7': 'pqrs', '8': 'tuv', '9': 'wxyz' };
+
+    const output = [];
+
+    const findCombinations = (combination, inputIndex) => {
+        if (inputIndex < digits.length) {
+            // Backtracking for every mapped letter
+            const digit = digits[inputIndex];
+            for (const letter of MAPPING[digit] || []) {
+                findCombinations(combination + letter, inputIndex + 1);
+            }
+        }
+        else output.push(combination); // Base condition - end of input
+    }
+
+    findCombinations('', 0);
+
+    return output;
+};
+// Time Complexity: O(4^n), 4 letters per digit (max) ^ n digits
+// Space Complexity: O(4^n) (same)
+
+
+/**
+ * 77. Combinations
+ * https://leetcode.com/problems/combinations/
+ */
+
+// Given two integers n and k, return all possible combinations of k numbers chosen from the range [1, n].
+// You may return the answer in any order.
+//
+// Example 1:
+// Input: n = 4, k = 2
+// Output: [[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]
+// Explanation: There are 4 choose 2 = 6 total combinations.
+// Note that combinations are unordered, i.e., [1,2] and [2,1] are considered to be the same combination.
+// Example 2:
+// Input: n = 1, k = 1
+// Output: [[1]]
+// Explanation: There is 1 choose 1 = 1 total combination.
+
+/**
+ * @param {number} n
+ * @param {number} k
+ * @return {number[][]}
+ */
+var combine = function(n, k) {
+    const result = [];
+    const combination = [];
+
+    // DFS + Backtracking
+    const findCombinations = (start) => {
+        if (combination.length === k) {
+            result.push(combination.slice()); // Copy array to output
+            return;
+        }
+
+        const numbersLeft = k - combination.length; // Numbers left to pick
+        const upperBound = n - numbersLeft + 1;     // Bound allowing that
+
+        for (let i = start; i <= upperBound; i++) {
+            combination.push(i);        // Choose next number
+            findCombinations(i + 1);    // Explore further with next start
+            combination.pop();          // Backtrack: unchoose
+        }
+    }
+
+    findCombinations(1);
+
+    return result;
+};
+// Time Complexity: O(n^k) very roughly
+// There are C(n, k) combinations and we spend O(k) to copy each into the answer → O(C(n, k) · k)
+// C(n, k) is the binomial coefficient “n choose k”: n! / (k! * (n - k)!)
+// Space Complexity: O(k) for recursion
+
+
+/**
+ * @param {number[]} nums
+ * @return {number[][]}
+ */
+var permute = function(nums) {
+    const n = nums.length;
+    const result = [];
+
+    const swap = (i, j) => {
+        [ nums[i], nums[j] ] = [ nums[j], nums[i] ];
+    }
+
+    /**
+     * Backtracks from position 'start':
+     * - positions [0..start-1] are fixed
+     * - we choose which element to place at index 'start'
+     */
+    const getCombinations = (start) => {
+        if (start === n) {
+            result.push(nums.slice());  // Copy to output
+            return;
+        }
+
+        for (let i = start; i < n; i++) {
+            swap(start, i);             // Choose next element to swap with start
+            getCombinations(start + 1); // Recurse to fix next position
+            swap(start, i);             // Undo
+        }
+    }
+
+    getCombinations(0);
+
+    return result;
+};
+// Time complexity: O(n!)
+// Space complexity: O(n) for recursion
+
+
+/**
+ * 108. Convert Sorted Array to Binary Search Tree
+ * https://leetcode.com/problems/convert-sorted-array-to-binary-search-tree/
+ */
+
+// Given an integer array nums where the elements are sorted in ascending order, convert it to a height-balanced binary search tree.
+//
+// Example 1:
+// Input: nums = [-10,-3,0,5,9]
+// Output: [0,-3,9,-10,null,5]
+// Explanation: [0,-10,5,null,-3,null,9] is also accepted:
+// Example 2:
+// Input: nums = [1,3]
+// Output: [3,1]
+// Explanation: [1,null,3] and [3,1] are both height-balanced BSTs.
+
+/**
+ * Definition for a binary tree node.
+ * function TreeNode(val, left, right) {
+ *     this.val = (val===undefined ? 0 : val)
+ *     this.left = (left===undefined ? null : left)
+ *     this.right = (right===undefined ? null : right)
+ * }
+ */
+/**
+ * @param {number[]} nums
+ * @return {TreeNode}
+ */
+var sortedArrayToBST = function(nums) {
+    if (!nums || nums.length === 0) return null;
+
+    // Take middle element as the root
+    // Recursively create left and right subtrees
+    const buildTree = (left, right) => {
+        if (left > right) return null;
+
+        const mid = (left + right) >>> 1;
+        const node = new TreeNode(nums[mid]);
+
+        node.left = buildTree(left, mid - 1);
+        node.right = buildTree(mid + 1, right);
+
+        return node;
+    }
+
+    return buildTree(0, nums.length - 1);
+};
+// Time complexity: O(n)
+// Space complexity: O(log n) for recursion (log because the tree height is balanced
+
+
+/**
+ * 148. Sort List
+ * https://leetcode.com/problems/sort-list/
+ */
+
+// ----- Naive but easy and quick approach: sort in array and reassemble
+
+/**
+ * Definition for singly-linked list.
+ * function ListNode(val, next) {
+ *     this.val = (val===undefined ? 0 : val)
+ *     this.next = (next===undefined ? null : next)
+ * }
+ */
+/**
+ * @param {ListNode} head
+ * @return {ListNode}
+ */
+var sortList = function(head) {
+    if (!head || !head.next) return head;
+
+    // Naive solution with O(n log n) time and O(n) space
+    // Sort all nodes in array by val
+    const sortedNodes = [];
+    for (let node = head; node; node = node.next) sortedNodes.push(node);
+    sortedNodes.sort((a, b) => (a.val - b.val));
+
+    // Re-assemble into a list
+    const dummy = new ListNode(0);
+    let curr = dummy;
+
+    for (let i = 0; i < sortedNodes.length; i++) {
+        curr.next = sortedNodes[i];
+        curr = sortedNodes[i];
+    }
+
+    // Reset last pointer
+    sortedNodes[sortedNodes.length - 1].next = null;
+
+    return dummy.next;
+};
+// Time complexity: O(n log n)
+// Space complexity: O(n)
+
+
+// ----- Optimal O(1) space approach
+
+/**
+ * Definition for singly-linked list.
+ * function ListNode(val, next) {
+ *     this.val = (val===undefined ? 0 : val)
+ *     this.next = (next===undefined ? null : next)
+ * }
+ */
+/**
+ * @param {ListNode} head
+ * @return {ListNode}
+ */
+var sortList = function(head) {
+    if (!head || !head.next) return head;
+
+    // Split off 'size' nodes starting at head
+    const split = (head, size) => {
+        let prev = null;
+        let curr = head;
+
+        while (curr && size > 0) {
+            prev = curr;
+            curr = curr.next;
+            size--;
+        }
+
+        if (prev) prev.next = null;
+        return curr;
+    }
+
+    // Merge two sorted lists
+    const merge = (l1, l2) => {
+        const dummy = new ListNode(0);
+        let tail = dummy;
+
+        // Merge least value
+        while (l1 && l2) {
+            if (l1.val <= l2.val) {
+                tail.next = l1;
+                l1 = l1.next;
+            }
+            else {
+                tail.next = l2;
+                l2 = l2.next;
+            }
+
+            tail = tail.next;
+        }
+
+        // Append remainder
+        tail.next = l1 || l2;
+
+        // Move tail to the end
+        while (tail.next) tail = tail.next;
+
+        return {
+            head: dummy.next,
+            tail: tail
+        };
+    }
+
+    // Count list length
+    let n = 0;
+    for (let node = head; node; node = node.next) n++;
+
+    let dummy = new ListNode(0);
+    dummy.next = head;
+
+    // Merge block sizes of 1, 2, 4, 8, ...
+    for (let step = 1; step < n; step *= 2) {
+        let prev = dummy;
+        let curr = dummy.next;
+
+        while (curr) {
+            let left = curr;                // Left list is n nodes from start
+            let right = split(left, step);  // Right is next n nodes
+            curr = split(right, step);      // The remaining tail is saved for next iteration
+
+            // Merge two *sorted* lists
+            const merged = merge(left, right);
+            prev.next = merged.head;
+            prev = merged.tail;
+        }
+    }
+
+    return dummy.next;
+};
+// Time complexity: O(n log n) every level touches each node once; there are ⌈log₂ n⌉ levels
+// Space complexity: O(n)
+
+
+/**
+ * 427. Construct Quad Tree
+ * https://leetcode.com/problems/construct-quad-tree/
+ */
+
+// Given a n * n matrix grid of 0's and 1's only. We want to represent grid with a Quad-Tree.
+// Return the root of the Quad-Tree representing grid.
+// A Quad-Tree is a tree data structure in which each internal node has exactly four children. Besides, each node has two attributes:
+// val: True if the node represents a grid of 1's or False if the node represents a grid of 0's.
+// Notice that you can assign the val to True or False when isLeaf is False, and both are accepted in the answer.
+// isLeaf: True if the node is a leaf node on the tree or False if the node has four children.
+// We can construct a Quad-Tree from a two-dimensional area using the following steps:
+// If the current grid has the same value (i.e all 1's or all 0's) set isLeaf True and set val to the value of the grid and set the four children to Null and stop.
+// If the current grid has different values, set isLeaf to False and set val to any value and divide the current grid into four sub-grids as shown in the photo.
+// Recurse for each of the children with the proper sub-grid.
+
+/**
+ * // Definition for a QuadTree node.
+ * function _Node(val,isLeaf,topLeft,topRight,bottomLeft,bottomRight) {
+ *    this.val = val;
+ *    this.isLeaf = isLeaf;
+ *    this.topLeft = topLeft;
+ *    this.topRight = topRight;
+ *    this.bottomLeft = bottomLeft;
+ *    this.bottomRight = bottomRight;
+ * };
+ */
+
+// ----- Easy solution: recurse down to 1x1 cells, build tree bottom-up
+
+/**
+ * @param {number[][]} grid
+ * @return {_Node}
+ */
+var construct = function(grid) {
+    if (!grid || !grid.length || (grid.length !== grid[0].length)) return [];
+
+    const n = grid.length;
+
+    const buildSubtree = (top, left, size) => {
+        // Base condition, node for 1x1 cell
+        if (size === 1) return new _Node(grid[top][left] === 1, true);
+
+        // Size / 2, recourse build nodes
+        const subtreeSize = size >> 1;
+        const topLeft = buildSubtree(top, left, subtreeSize);
+        const topRight = buildSubtree(top, left + subtreeSize, subtreeSize);
+        const bottomLeft = buildSubtree(top + subtreeSize, left, subtreeSize);
+        const bottomRight = buildSubtree(top + subtreeSize, left + subtreeSize, subtreeSize);
+
+        // If all children nodes are leafs of the same value, drop them and mark this node as a leaf
+        if (topLeft.isLeaf && topRight.isLeaf && bottomLeft.isLeaf && bottomRight.isLeaf &&
+            (topLeft.val === topRight.val) && (topRight.val === bottomLeft.val) && (bottomLeft.val === bottomRight.val)) {
+            return new _Node(topLeft.val, true);
+        }
+
+        // Otherwise, assign those children to the node
+        return new _Node(false, false, topLeft, topRight, bottomLeft, bottomRight);
+    }
+
+    return buildSubtree(0, 0, n);
+};
+// Time complexity: O(n^2)
+// Space complexity: O(n^2) for recursion
+
+
+// ----- Fancy Solution: use 2D pferix sum and build top-down
+
+/**
+ * // Definition for a QuadTree node.
+ * function _Node(val,isLeaf,topLeft,topRight,bottomLeft,bottomRight) {
+ *    this.val = val;
+ *    this.isLeaf = isLeaf;
+ *    this.topLeft = topLeft;
+ *    this.topRight = topRight;
+ *    this.bottomLeft = bottomLeft;
+ *    this.bottomRight = bottomRight;
+ * };
+ */
+
+/**
+ * @param {number[][]} grid
+ * @return {_Node}
+ */
+var construct = function(grid) {
+    if (!grid || !grid.length || (grid.length !== grid[0].length)) return [];
+
+    const n = grid.length;
+
+    // --- Build 2-D prefix sums: ps[i+1][j+1] = sum of grid[0..i][0..j]
+    const prefixSum = Array.from({length: n + 1}, () => Array(n + 1).fill(0));
+
+    for (let i = 0; i < n; i++) {
+        let rowSum = 0;
+        for (let j = 0; j < n; j++) {
+            rowSum += grid[i][j];
+            prefixSum[i + 1][j + 1] = prefixSum[i][j + 1] + rowSum;
+        }
+    }
+
+    // Return the sum of a size×size square with top-left (r, c)
+    const getAreaSum = (top, left, size) => {
+        const bottom = top + size;
+        const right = left + size;
+        return prefixSum[bottom][right] - prefixSum[top][right] - prefixSum[bottom][left] + prefixSum[top][left];
+    }
+
+    // Recursive builder for sub-square starting at (r,c) with side 'size'
+    const buildSubtree = (top, left, size) => {
+        const sum = getAreaSum(top, left, size);
+        // If all 0s or 1s
+        if (sum === 0) return new _Node(false, true);           // 0s
+        if (sum === size * size) return new _Node(true, true);  // 1s
+
+        // Not uniform values: split into 4 sub-grids
+        const s = size >> 1;
+
+        // Return node with recursively built children
+        return new _Node(false, false,
+            buildSubtree(top,     left,     s),
+            buildSubtree(top,     left + s, s),
+            buildSubtree(top + s, left,     s),
+            buildSubtree(top + s, left + s, s),
+        );
+    }
+
+    return buildSubtree(0, 0, n);
+};
+// Time complexity: O(n^2)
+// Space complexity: O(n^2) for prefix sum and recursion
+
+
+/**
+ * 23. Merge k Sorted Lists
+ * https://leetcode.com/problems/merge-k-sorted-lists/
+ */
+
+// You are given an array of k linked-lists lists, each linked-list is sorted in ascending order.
+// Merge all the linked-lists into one sorted linked-list and return it.
+// Example 1:
+// Input: lists = [[1,4,5],[1,3,4],[2,6]]
+// Output: [1,1,2,3,4,4,5,6]
+// Explanation: The linked-lists are:
+// [
+//   1->4->5,
+//   1->3->4,
+//   2->6
+// ]
+// merging them into one sorted linked list:
+// 1->1->2->3->4->4->5->6
+// Example 2:
+// Input: lists = []
+// Output: []
+// Example 3:
+// Input: lists = [[]]
+// Output: []
+
+/**
+ * Definition for singly-linked list.
+ * function ListNode(val, next) {
+ *     this.val = (val===undefined ? 0 : val)
+ *     this.next = (next===undefined ? null : next)
+ * }
+ */
+/**
+ * @param {ListNode[]} lists
+ * @return {ListNode}
+ */
+var mergeKLists = function(lists) {
+    let heap = new TupleMinHeap(); // It's not implemented by default, see helpers
+
+    // Add all heads to heap, they'll be sorted asc
+    for (const head of lists) {
+        if (head) {
+            heap.push([head.val, head]);
+        }
+    }
+
+    let dummy = new ListNode(0, null);
+    let lastNode = dummy;
+
+    // Pop the smallest item from heap, add to list
+    // Push next item from the same list to the heap
+    // Repeat
+    while (heap.length() > 0) {
+        let nextNode = heap.pop()[1];
+
+        // Node to merged list
+        lastNode.next = nextNode;
+        lastNode = nextNode;
+
+        // If next node is linked to another, add it to the heap
+        if (nextNode.next) {
+            heap.push([nextNode.next.val, nextNode.next]);
+        }
+    }
+
+    return dummy.next;
+};
+// Time complexity: O(n log k) where n is the total number of nodes across all input linked lists and k is the number of linked lists
+// Space complexity: O(k) where k is the number of linked lists
+
+
+/**
+ * 53. Maximum Subarray
+ * https://leetcode.com/problems/maximum-subarray/
+ */
+
+// Given an integer array nums, find the subarray with the largest sum, and return its sum.
+// Example 1:
+// Input: nums = [-2,1,-3,4,-1,2,1,-5,4]
+// Output: 6
+// Explanation: The subarray [4,-1,2,1] has the largest sum 6.
+// Example 2:
+// Input: nums = [1]
+// Output: 1
+// Explanation: The subarray [1] has the largest sum 1.
+// Example 3:
+// Input: nums = [5,4,-1,7,8]
+// Output: 23
+// Explanation: The subarray [5,4,-1,7,8] has the largest sum 23.
+
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var maxSubArray = function(nums) {
+    let result = nums[0];
+    let maxEnding = nums[0];
+
+    // Kadane's Algorithm
+    // On each step we will take either sum of the max subarray we know
+    // Or current element if it's bigger
+    for (let i = 1; i < nums.length; i++) {
+        maxEnding = Math.max(maxEnding + nums[i], nums[i]);
+        result = Math.max(result, maxEnding);
+    }
+
+    return result;
+};
+// Time complexity: O(n)
+// Space complexity: O(1)
+
+
+/**
+ * 918. Maximum Sum Circular Subarray
+ * https://leetcode.com/problems/maximum-sum-circular-subarray/
+ */
+
+// Given a circular integer array nums of length n, return the maximum possible sum of a non-empty subarray of nums.
+// A circular array means the end of the array connects to the beginning of the array.
+// Formally, the next element of nums[i] is nums[(i + 1) % n] and the previous element of nums[i] is nums[(i - 1 + n) % n].
+// A subarray may only include each element of the fixed buffer nums at most once.
+// Formally, for a subarray nums[i], nums[i + 1], ..., nums[j], there does not exist i <= k1, k2 <= j with k1 % n == k2 % n.
+//
+// Example 1:
+// Input: nums = [1,-2,3,-2]
+// Output: 3
+// Explanation: Subarray [3] has maximum sum 3.
+// Example 2:
+// Input: nums = [5,-3,5]
+// Output: 10
+// Explanation: Subarray [5,5] has maximum sum 5 + 5 = 10.
+// Example 3:
+// Input: nums = [-3,-2,-3]
+// Output: -2
+// Explanation: Subarray [-2] has maximum sum -2.
+
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var maxSubarraySumCircular = function(nums) {
+    let total = 0;
+    let maxEnding = 0;
+    let minEnding = 0;
+    let maxSum = -Infinity;
+    let minSum = Infinity;
+
+    for (const val of nums) {
+        total += val;
+
+        // Kadane for max - calculating non-wrap max sum
+        maxEnding = Math.max(val, maxEnding + val);
+        maxSum = Math.max(maxSum, maxEnding);
+
+        // Kadane for min - calculating non-wrap min sum
+        minEnding = Math.min(val, minEnding + val);
+        minSum = Math.min(minSum, minEnding);
+    }
+
+    // If all numbers are negative, the correct answer is max negative element
+    if (maxSum < 0) return maxSum;
+
+    // In regular case compare non-wrap vs wrap max sum
+    // Wrap max sum = total - min sum
+    return Math.max(maxSum, total - minSum);
+};
+// Time complexity: O(n)
+// Space complexity: O(1)
+
+
+/**
+ * 35. Search Insert Position
+ * https://leetcode.com/problems/search-insert-position/
+ */
+
+// Given a sorted array of distinct integers and a target value, return the index if the target is found.
+// If not, return the index where it would be if it were inserted in order.
+// You must write an algorithm with O(log n) runtime complexity.
+// Example 1:
+// Input: nums = [1,3,5,6], target = 5
+// Output: 2
+// Example 2:
+// Input: nums = [1,3,5,6], target = 2
+// Output: 1
+// Example 3:
+// Input: nums = [1,3,5,6], target = 7
+// Output: 4
+
+/**
+ * @param {number[]} nums
+ * @param {number} target
+ * @return {number}
+ */
+var searchInsert = function(nums, target) {
+    let left = 0;
+    let right = nums.length;
+
+    // Classic binary search
+    while (left < right) {
+        const mid = (left + right) >> 1;
+
+        if (target > nums[mid]) left = mid + 1;
+        else right = mid;
+    }
+
+    return left;
+};
+// Time complexity: O(log n)
+// Space complexity: O(1)
+
+
+/**
+ * 74. Search a 2D Matrix
+ * https://leetcode.com/problems/search-a-2d-matrix/
+ */
+
+// You are given an m x n integer matrix matrix with the following two properties:
+// Each row is sorted in non-decreasing order.
+// The first integer of each row is greater than the last integer of the previous row.
+// Given an integer target, return true if target is in matrix or false otherwise.
+// You must write a solution in O(log(m * n)) time complexity.
+//
+// Example 1:
+// Input: matrix = [[1,3,5,7],[10,11,16,20],[23,30,34,60]], target = 3
+// Output: true
+// Example 2:
+// Input: matrix = [[1,3,5,7],[10,11,16,20],[23,30,34,60]], target = 13
+// Output: false
+
+
+// ----- Elegant solution: flatten matrix into array (no extra space, only math)
+
+/**
+ * @param {number[][]} matrix
+ * @param {number} target
+ * @return {boolean}
+ */
+var searchMatrix = function(matrix, target) {
+    const rows = matrix.length;
+    const cols = matrix[0].length;
+
+    let left = 0;
+    let right = rows * cols;
+
+    // Mentally flattening matrix into array and performing binary search
+    while (left < right) {
+        const mid = (left + right) >> 1;
+        // Converting flat index into row and col
+        const row = (mid / cols) >> 0;
+        const col = (mid % cols);
+
+        if (target > matrix[row][col]) left = mid + 1;
+        else right = mid;
+    }
+
+    if (left === rows * cols) return false; // If we fell over index space, target is not there
+    return (matrix[ (left / cols) >> 0 ][ (left % cols) ] === target); // Otherwise look up what element we found
+};
+// Time complexity: O(log m * n)
+// Space complexity: O(1)
+
+
+// ----- More straight-forward: two loops, for row and col
+
+/**
+ * @param {number[][]} matrix
+ * @param {number} target
+ * @return {boolean}
+ */
+var searchMatrix = function(matrix, target) {
+    const rows = matrix.length;
+    const cols = matrix[0].length;
+
+    let top = 0;
+    let bottom = rows;
+
+    // Search "insert row index" using last item in the row
+    while (top < bottom) {
+        const mid = (top + bottom) >> 1;
+
+        if (target > matrix[mid][cols - 1]) top = mid + 1;
+        else bottom = mid;
+    }
+
+    // This means that the last item in matrix is less than target
+    if (top >= rows) return false;
+
+    let left = 0;
+    let right = cols;
+
+    // Search "insert column index" in the target row
+    while (left < right) {
+        const mid = (left + right) >> 1;
+
+        if (target > matrix[top][mid]) left = mid + 1;
+        else right = mid;
+    }
+
+    return (matrix[top][left] === target);
+};
+// Time complexity: O(log m * n)
+// Space complexity: O(1)
+
+
+/**
+ * 162. Find Peak Element
+ * https://leetcode.com/problems/find-peak-element/
+ */
+
+// A peak element is an element that is strictly greater than its neighbors.
+// Given a 0-indexed integer array nums, find a peak element, and return its index. If the array contains multiple peaks, return the index to any of the peaks.
+// You may imagine that nums[-1] = nums[n] = -∞. In other words, an element is always considered to be strictly greater than a neighbor that is outside the array.
+// You must write an algorithm that runs in O(log n) time.
+//
+// Example 1:
+// Input: nums = [1,2,3,1]
+// Output: 2
+// Explanation: 3 is a peak element and your function should return the index number 2.
+// Example 2:
+// Input: nums = [1,2,1,3,5,6,4]
+// Output: 5
+// Explanation: Your function can return either index number 1 where the peak element is 2, or index number 5 where the peak element is 6.
+
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var findPeakElement = function(nums) {
+    let left = 0;
+    let right = nums.length - 1;
+
+    // Binary search: follow the slope
+    while (left < right) {
+        const mid = (left + right) >> 1;
+
+        // Left incline, move right border
+        if (nums[mid] > nums[mid + 1]) right = mid;
+        // Right incline, move left border
+        else left = mid + 1;
+    }
+
+    return left;
+};
+// Time complexity: O(log n)
+// Space complexity: O(1)
+
+
+/**
+ * 34. Find First and Last Position of Element in Sorted Array
+ * https://leetcode.com/problems/find-first-and-last-position-of-element-in-sorted-array/
+ */
+
+// Given an array of integers nums sorted in non-decreasing order, find the starting and ending position of a given target value.
+// If target is not found in the array, return [-1, -1].
+// You must write an algorithm with O(log n) runtime complexity.
+//
+// Example 1:
+// Input: nums = [5,7,7,8,8,10], target = 8
+// Output: [3,4]
+// Example 2:
+// Input: nums = [5,7,7,8,8,10], target = 6
+// Output: [-1,-1]
+// Example 3:
+// Input: nums = [], target = 0
+// Output: [-1,-1]
+
+/**
+ * @param {number[]} nums
+ * @param {number} target
+ * @return {number[]}
+ */
+var searchRange = function(nums, target) {
+    let left = 0;
+    let right = nums.length;
+
+    // First search: lower bound (first occurrence of target)
+    while (left < right) {
+        const mid = (left + right) >> 1;
+
+        if (target > nums[mid]) left = mid + 1;
+        else right = mid;
+    }
+
+    // Checking if target was found, otherwise early exit
+    if (nums[left] !== target) return [-1, -1];
+
+    // Remebering left
+    const result = [left, left];
+
+    // Resetting right bound for new search, keeping left as is
+    right = nums.length;
+
+    // Second search: upper bound (first index after the last occurrence)
+    while (left < right) {
+        const mid = (left + right) >> 1;
+
+        if (target >= nums[mid]) left = mid + 1; // Note >= for upper bound
+        else right = mid;
+    }
+
+    result[1] = left - 1; // Upper bound is exclusive
+
+    return result;
+};
+// Time complexity: O(log n)
+// Space complexity: O(1)
+
+
+/**
+ * 153. Find Minimum in Rotated Sorted Array
+ * https://leetcode.com/problems/find-minimum-in-rotated-sorted-array/
+ */
+
+// Suppose an array of length n sorted in ascending order is rotated between 1 and n times. For example, the array nums = [0,1,2,4,5,6,7] might become:
+// [4,5,6,7,0,1,2] if it was rotated 4 times.
+// [0,1,2,4,5,6,7] if it was rotated 7 times.
+// Notice that rotating an array [a[0], a[1], a[2], ..., a[n-1]] 1 time results in the array [a[n-1], a[0], a[1], a[2], ..., a[n-2]].
+// Given the sorted rotated array nums of unique elements, return the minimum element of this array.
+// You must write an algorithm that runs in O(log n) time.
+//
+// Example 1:
+// Input: nums = [3,4,5,1,2]
+// Output: 1
+// Explanation: The original array was [1,2,3,4,5] rotated 3 times.
+// Example 2:
+// Input: nums = [4,5,6,7,0,1,2]
+// Output: 0
+// Explanation: The original array was [0,1,2,4,5,6,7] and it was rotated 4 times.
+// Example 3:
+// Input: nums = [11,13,15,17]
+// Output: 11
+// Explanation: The original array was [11,13,15,17] and it was rotated 4 times.
+
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var findMin = function(nums) {
+    let left = 0;
+    let right = nums.length - 1;
+
+    while (left < right) {
+        const mid = (left + right) >> 1;
+
+        // If mid is greater than nums[right], min is strictly to the right of mid
+        if (nums[mid] > nums[right]) left = mid + 1;
+        // Otherwise min is at mid or to its left
+        else right = mid;
+    }
+
+    return nums[left];
+};
+// Time complexity: O(log n)
+// Space complexity: O(1)
+
+
+/**
+ * @param {number[]} nums1
+ * @param {number[]} nums2
+ * @param {number} k
+ * @return {number[][]}
+ */
+var kSmallestPairs = function(nums1, nums2, k) {
+    const n1 = nums1.length;
+    const n2 = nums2.length;
+
+    // Seed the heap with initial pairs: take each value from nums1 and first from nums2
+    // Stop if have k pairs
+    const seedCount = Math.min(n1, k);
+    const heap = new Heap((a, b) => a.sum - b.sum);
+
+    for (let i = 0; i < seedCount; i++) {
+        heap.push({
+            sum: nums1[i] + nums2[0],
+            i: i,
+            j: 0
+        });
+    }
+
+    const result = [];
+
+    // On each pop from heap, add one pair to the heap: same i, next j
+    while (result.length < k && heap.size() > 0) {
+        const {i, j} = heap.pop();
+        result.push([ nums1[i], nums2[j] ]);
+
+        if (j + 1 < n2) {
+            heap.push({
+                sum: nums1[i] + nums2[j + 1],
+                i: i,
+                j: j + 1
+            });
+        }
+    }
+
+    return result;
+};
+// Time complexity: O(k log k)
+// Space complexity: O(k)
+
+
+/**
+ * 67. Add Binary
+ * https://leetcode.com/problems/add-binary/
+ */
+
+// Given two binary strings a and b, return their sum as a binary string.
+// Example 1:
+// Input: a = "11", b = "1"
+// Output: "100"
+// Example 2:
+// Input: a = "1010", b = "1011"
+// Output: "10101"
+
+/**
+ * @param {string} a
+ * @param {string} b
+ * @return {string}
+ */
+var addBinary = function(a, b) {
+    const result = [];
+    let i = a.length - 1;
+    let j = b.length - 1;
+    let carryOver = 0;
+
+    while (i >= 0 || j >= 0 || carryOver > 0) {
+        const bitA = (i >= 0) ? (a.charCodeAt(i--) - 48) : 0; // '0'.charCodeAt(0) === 48
+        const bitB = (j >= 0) ? (b.charCodeAt(j--) - 48) : 0;
+
+        const sum = bitA + bitB + carryOver;    // Range 0..3
+        result.push((sum & 1).toString());      // "If sum's last bit is 1" Same as "sum % 2 === 1"
+        carryOver = sum >> 1;                   // carryOver = Math.floor(sum / 2) (bit shift trick)
+    }
+
+    return result.reverse().join('');   // Result was built left to right, need to reverse
+};
+// Time complexity: O(a + b)
+// Space complexity: O(1)
+
+
+/**
+ * 190. Reverse Bits
+ * https://leetcode.com/problems/reverse-bits/
+ */
+
+// Reverse bits of a given 32 bits unsigned integer.
+// Note:
+// Note that in some languages, such as Java, there is no unsigned integer type. In this case, both input and output will be given as a signed integer type. They should not affect your implementation, as the integer's internal binary representation is the same, whether it is signed or unsigned.
+// In Java, the compiler represents the signed integers using 2's complement notation.
+// Example 1:
+// Input: n = 43261596
+// Output: 964176192
+// Explanation:
+// Integer	Binary
+// 43261596	00000010100101000001111010011100
+// 964176192	00111001011110000010100101000000
+// Example 2:
+// Input: n = 2147483644
+// Output: 1073741822
+// Explanation:
+// Integer	Binary
+// 2147483644	01111111111111111111111111111100
+// 1073741822	00111111111111111111111111111110
+
+/**
+ * @param {number} n
+ * @return {number}
+ */
+var reverseBits = function(n) {
+    let result = 0;
+
+    for (let i = 0; i < 32; i++) {
+        result <<= 1;       // Result shift left 1 bit before appending next bit (first shift is just zeroes)
+        result |= n & 1;    // Append first bit of n
+        n >>>= 1;           // Signed shift right 1 bit for n (next bit is now first)
+    }
+
+    return result >>> 0;    // Coerce result to unsigned 32-bit result
+};
+// Time complexity: O(1)
+// Space complexity: O(1)
+
+// ----- Classic mask-swap method (Hacker’s Delight)
+
+/**
+ * @param {number} n
+ * @return {number}
+ */
+var reverseBits = function(n) {
+    n = ((n >>> 1) & 0x55555555) | ((n & 0x55555555) << 1);
+    n = ((n >>> 2) & 0x33333333) | ((n & 0x33333333) << 2);
+    n = ((n >>> 4) & 0x0f0f0f0f) | ((n & 0x0f0f0f0f) << 4);
+    n = ((n >>> 8) & 0x00ff00ff) | ((n & 0x00ff00ff) << 8);
+    n = (n >>> 16) | (n << 16);
+    return n >>> 0;
+};
+// Time complexity: O(1)
+// Space complexity: O(1)
+
+
+/**
+ * 191. Number of 1 Bits
+ * https://leetcode.com/problems/number-of-1-bits/
+ */
+
+// Given a positive integer n, write a function that returns the number of set bits in its binary representation (also known as the Hamming weight).
+// Example 1:
+// Input: n = 11
+// Output: 3
+// Explanation:
+// The input binary string 1011 has a total of three set bits.
+// Example 2:
+// Input: n = 128
+// Output: 1
+// Explanation:
+// The input binary string 10000000 has a total of one set bit.
+// Example 3:
+// Input: n = 2147483645
+// Output: 30
+// Explanation:
+// The input binary string 1111111111111111111111111111101 has a total of thirty set bits.
+
+/**
+ * @param {number} n
+ * @return {number}
+ */
+var hammingWeight = function(n) {
+    n >>>= 0;       // Coerce to unsigned 32-bit (important in JS)
+    let result = 0;
+
+    while (n !== 0) {
+        // Fast track through set bits
+        n &= n - 1; // drop the lowest set bit
+        result++;
+
+        // Straight-forward bit by bit traversal option
+        // if (n & 1) result++;
+        // n >>>= 1;
+    }
+
+    return result;
+};
+// Time complexity: O(s) where s in the number of set bits; but actually O(1) because at most 31 iterations for 32-bit integers (one per bit)
+// Space complexity: O(1)
+
+
+/**
+ * 136. Single Number
+ * https://leetcode.com/problems/single-number/
+ */
+
+// Given a non-empty array of integers nums, every element appears twice except for one. Find that single one.
+// You must implement a solution with a linear runtime complexity and use only constant extra space.
+//
+// Example 1:
+// Input: nums = [2,2,1]
+// Output: 1
+// Example 2:
+// Input: nums = [4,1,2,1,2]
+// Output: 4
+// Example 3:
+// Input: nums = [1]
+// Output: 1
+
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var singleNumber = function(nums) {
+    let result = 0; // Running XOR accumulator
+
+    for (const n of nums) {
+        // Bitwise XOR trick: a ^ a = 0, a ^ 0 = a
+        // Pairs cancel out, leaving the single number
+        result ^= n;
+    }
+
+    return result;
+};
+// Time complexity: O(n)
+// Space complexity: O(1)
+
+
+/**
+ * 137. Single Number II
+ * https://leetcode.com/problems/single-number-ii/
+ */
+
+// Given an integer array nums where every element appears three times except for one, which appears exactly once. Find the single element and return it.
+// You must implement a solution with a linear runtime complexity and use only constant extra space.
+// Example 1:
+// Input: nums = [2,2,3,2]
+// Output: 3
+// Example 2:
+// Input: nums = [0,1,0,1,0,1,99]
+// Output: 99
+
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var singleNumber = function(nums) {
+    let ones = 0;   // bitmask of bits that have appeared exactly once so far
+    let twos = 0    // bitmask of bits that have appeared exactly twice so far
+
+    // For each number, update the two masks.
+    // Trick:
+    //   - XOR toggles bits (adds occurrences mod 2)
+    //   - '& ~mask' removes bits that already reached the next state
+    //   - After processing, any bit seen 3 times is cleared from both masks
+    for (const n of nums) {
+        // First, add n's bits to 'ones'; bits already in 'twos' must not stay in 'ones'
+        ones = (ones ^ n) & ~twos;
+
+        // Then, add n's bits to 'twos'; bits that are now in 'ones' must not stay in 'twos'
+        twos = (twos ^ n) & ~ones;
+    }
+
+    // After all numbers, bits seen exactly once remain in 'ones'
+    return ones;
+};
+// Time complexity: O(n)
+// Space complexity: O(1)
+
+
+/**
+ * 201. Bitwise AND of Numbers Range
+ * https://leetcode.com/problems/bitwise-and-of-numbers-range/
+ */
+
+// Given two integers left and right that represent the range [left, right], return the bitwise AND of all numbers in this range, inclusive.
+// Example 1:
+// Input: left = 5, right = 7
+// Output: 4
+// Example 2:
+// Input: left = 0, right = 0
+// Output: 0
+// Example 3:
+// Input: left = 1, right = 2147483647
+// Output: 0
+
+/**
+ * @param {number} left
+ * @param {number} right
+ * @return {number}
+ */
+var rangeBitwiseAnd = function(left, right) {
+    // The AND of all numbers in [left, right] keeps only the common prefix of left and right;
+    // every bit that differs somewhere in the range is forced to 0.
+    // Shift both numbers right until they become equal (dropping the differing suffix), then shift that common prefix back.
+
+    let shift = 0;
+
+    // Remove differing suffix bits: as long as left < right,
+    // there exists some bit position where numbers in [left, right]
+    // flip from 0 to 1 -> that entire suffix ANDs to 0.
+    while (left < right) {
+        left  >>= 1;    // drop one low bit from left (safe: inputs are non-negative)
+        right >>= 1;    // drop one low bit from right
+        shift++;        // remember how many bits we removed
+    }
+
+    // Restore the common prefix to its original position.
+    // All stripped lower bits are zeros in the result.
+    return left << shift;
+};
+// Time complexity: O(log(range)) but actually O(1) because at most 31 iterations for 32-bit integers (one per bit)
+// Space complexity: O(1)
+
+
+/**
+ * 9. Palindrome Number
+ * https://leetcode.com/problems/palindrome-number/
+ */
+
+// Given an integer x, return true if x is a palindrome, and false otherwise.
+// Example 1:
+// Input: x = 121
+// Output: true
+// Explanation: 121 reads as 121 from left to right and from right to left.
+// Example 2:
+// Input: x = -121
+// Output: false
+// Explanation: From left to right, it reads -121. From right to left, it becomes 121-. Therefore it is not a palindrome.
+// Example 3:
+// Input: x = 10
+// Output: false
+// Explanation: Reads 01 from right to left. Therefore it is not a palindrome.
+
+// ----- Elegant math solution with O(1) space
+/**
+ * @param {number} x
+ * @return {boolean}
+ */
+var isPalindrome = function(x) {
+    // Early rejections:
+    //  - negatives are not palindromes due to leading '-'
+    //  - numbers ending with 0 are not palindromes unless the number is 0
+    if (x < 0 || (x > 0 && (x % 10 === 0) )) return false;
+
+    // We're shaving off digits of x and stacking them in reversed order until we have the half reversed
+    let reversed = 0;
+    while (x > reversed) {
+        reversed = reversed * 10 + (x % 10);
+        x = Math.trunc(x / 10);
+    }
+
+    // For even digits we have two equal numbers
+    // For odd digits rev and x will differ by magnitude of 10 and reversed will have the middle digit at the end
+    return (x === reversed) || (x === Math.trunc(reversed / 10));
+};
+// Time complexity: O(n) where n is length of x
+// Space complexity: O(1)
+
+// ----- Generic solution for strings
+/**
+ * @param {number} x
+ * @return {boolean}
+ */
+var isPalindrome = function(x) {
+    // Early rejections:
+    //  - negatives are not palindromes due to leading '-'
+    //  - numbers ending with 0 are not palindromes unless the number is 0
+    if (x < 0 || (x > 0 && (x % 10 === 0) )) return false;
+
+    // Converting x to string and using two-pointer scan and compare
+    let s = x.toString();
+    let left = 0;
+    let right = s.length - 1;
+
+    while (left < right) {
+        if (s[left++] !== s[right--]) return false;
+    }
+
+    return true;
+};
+// Time complexity: O(n) where n is length of x
+// Space complexity: O(n)
+
+
+/**
+ * 66. Plus One
+ * https://leetcode.com/problems/plus-one/
+ */
+
+// You are given a large integer represented as an integer array digits, where each digits[i] is the ith digit of the integer.
+// The digits are ordered from most significant to least significant in left-to-right order. The large integer does not contain any leading 0's.
+// Increment the large integer by one and return the resulting array of digits.
+//
+// Example 1:
+// Input: digits = [1,2,3]
+// Output: [1,2,4]
+// Explanation: The array represents the integer 123.
+// Incrementing by one gives 123 + 1 = 124.
+// Thus, the result should be [1,2,4].
+// Example 2:
+// Input: digits = [4,3,2,1]
+// Output: [4,3,2,2]
+// Explanation: The array represents the integer 4321.
+// Incrementing by one gives 4321 + 1 = 4322.
+// Thus, the result should be [4,3,2,2].
+// Example 3:
+// Input: digits = [9]
+// Output: [1,0]
+// Explanation: The array represents the integer 9.
+// Incrementing by one gives 9 + 1 = 10.
+// Thus, the result should be [1,0].
+
+/**
+ * @param {number[]} digits
+ * @return {number[]}
+ */
+var plusOne = function(digits) {
+    // This is a universal solution for 0 to 9 range
+    let carry = 1; // What we need to add to the ith digit (right-to-left)
+    let i = digits.length - 1;
+
+    // Add carry to the current digit, propagate if sum > 9
+    while (carry > 0 && i >= 0) {
+        let sum = digits[i] + carry;
+        digits[i] = sum % 10;       // New digit after addition
+        carry = (sum / 10) >>> 0;   // Next carry (0 or 1), using bit shift trick for Math.floor
+        i--;
+    }
+
+    if (carry > 0) digits.unshift(carry);   // Add last carryover on top if needed
+
+    return digits;
+};
+// Time complexity: O(n) where n is length of digits
+// Space complexity: O(1)
+
+
+/**
+ * 172. Factorial Trailing Zeroes
+ * https://leetcode.com/problems/factorial-trailing-zeroes/
+ */
+
+// Given an integer n, return the number of trailing zeroes in n!.
+// Note that n! = n * (n - 1) * (n - 2) * ... * 3 * 2 * 1.
+//
+// Example 1:
+// Input: n = 3
+// Output: 0
+// Explanation: 3! = 6, no trailing zero.
+// Example 2:
+// Input: n = 5
+// Output: 1
+// Explanation: 5! = 120, one trailing zero.
+// Example 3:
+// Input: n = 0
+// Output: 0
+
+/**
+ * @param {number} n
+ * @return {number}
+ */
+var trailingZeroes = function(n) {
+    // 2! = 2, therefore each next 5th n will contribute zeroes (!5 = 1 * 2 * 3 * 4 * 5 = 120)
+    // Trailing zeros in n! come from factors of 10 = 2 × 5
+    // We need to count how many fives appear in n!: ⌊n/5⌋ + ⌊n/25⌋ + ….
+    let result = 0;
+
+    // Repeatedly divide n by 5; each step counts how many multiples of 5^k there are.
+    // This sums floor(n/5) + floor(n/25) + floor(n/125) + ...
+    while (n > 0) {
+        n = Math.floor(n / 5); // how many numbers contribute at least one more '5'
+        result += n;
+    }
+
+    return result;
+};
+// Time complexity: O(n)
+// Space complexity: O(1)
+
+
+/**
+ * 69. Sqrt(x)
+ * https://leetcode.com/problems/sqrtx/
+ */
+
+// Given a non-negative integer x, return the square root of x rounded down to the nearest integer.
+// The returned integer should be non-negative as well.
+// You must not use any built-in exponent function or operator.
+// For example, do not use pow(x, 0.5) in c++ or x ** 0.5 in python.
+// Example 1:
+// Input: x = 4
+// Output: 2
+// Explanation: The square root of 4 is 2, so we return 2.
+// Example 2:
+// Input: x = 8
+// Output: 2
+// Explanation: The square root of 8 is 2.82842..., and since we round it down to the nearest integer, 2 is returned.
+
+/**
+ * @param {number} x
+ * @return {number}
+ */
+var mySqrt = function(x) {
+    if (x < 2) return x;
+
+    // Idea: use binary search to find largest n where (n * n <= x)
+    let left = 1;
+    let right = Math.floor(x / 2) + 1;
+
+    while (left < right) {
+        const mid = Math.floor((left + right) / 2);
+
+        if (mid <= x / mid) left = mid + 1; // (mid * mid <= x) works but can cause overflow with big mid
+        else right = mid;
+    }
+
+    return left - 1;
+};
+// Time complexity: O(log x)
+// Space complexity: O(1)
+
+// ----- // Newton’s method
+
+/**
+ * @param {number} x
+ * @return {number}
+ */
+var mySqrt = function(x) {
+    if (x === 0) return 0;
+
+    let res = x;
+    while (res > x / res) {
+        res = Math.floor((res + x / res) / 2);
+    }
+
+    return res;
+};
+// Time complexity: O(log x)
+// Space complexity: O(1)
+
+
+/**
+ * 50. Pow(x, n)
+ * https://leetcode.com/problems/powx-n/
+ */
+
+// Implement pow(x, n), which calculates x raised to the power n (i.e., xn).
+// Example 1:
+// Input: x = 2.00000, n = 10
+// Output: 1024.00000
+// Example 2:
+// Input: x = 2.10000, n = 3
+// Output: 9.26100
+// Example 3:
+// Input: x = 2.00000, n = -2
+// Output: 0.25000
+// Explanation: 2^-2 = 1/2^2 = 1/4 = 0.25
+
+/**
+ * @param {number} x
+ * @param {number} n
+ * @return {number}
+ */
+var myPow = function(x, n) {
+    // 2^10 = 4^5 = 4 * 4^4 = 4 * 16^2 = 4 * 256 = 1024
+    // If pow is even, we can multiply the number by itself and divide pow by 2 (2^10 = 4^5)
+    // If pow is odd, we need to extract the number as multiplier (4^5 = 4 * 4^4)
+
+    // For negative power (x)^-2 = (1/x)^2
+    let base = (n >= 0) ? x : 1 / x;
+    let pow = Math.abs(n);
+
+    let result = 1;
+
+    while (pow > 0) {
+        if (pow % 2 === 1) result *= base;  // Use current base when power is odd
+        base *= base;                       // Square the base
+        pow = Math.floor(pow / 2);          // Divide base by 2
+    }
+
+    return result;
+};
+// Time complexity: O(log n)
+// Space complexity: O(1)

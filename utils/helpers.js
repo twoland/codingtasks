@@ -72,6 +72,16 @@ function arrayToTree(arr) {
 }
 
 /**
+ * Trie (Prefix Tree) Node
+ */
+class TrieNode {
+    constructor(children = {}, eow = false) {
+        this.children = children;
+        this.isEndOfWord = eow;
+    }
+}
+
+/**
  * Trie (Prefix Tree)
  */
 
@@ -196,17 +206,72 @@ class Trie {
 }
 
 /**
- * Trie (Prefix Tree) Node
+ * Heap — array-based binary heap (generic).
+ * Priority rule is defined by `cmp(a, b)`:
+ *   - return < 0  ⇢  `a` has higher priority than `b` (rises toward the top)
+ *   - return = 0  ⇢  equal priority
+ *   - return > 0  ⇢  `a` has lower priority than `b`
+ *
+ * Common comparators for numbers:
+ *   Min-heap: (a, b) => a - b         // default
+ *   Max-heap: (a, b) => b - a
  */
-class TrieNode {
-    constructor(children = {}, eow = false) {
-        this.children = children;
-        this.isEndOfWord = eow;
+class Heap {
+    constructor(cmp = (a, b) => a - b) {
+        this.a = [];                        // internal array storage
+        this.cmp = cmp;                     // comparator: returns negative if a<b
     }
+    size() { return this.a.length; }
+    peek() { return this.a[0]; }
+    push(x) {
+        this.a.push(x);
+        this._siftUp(this.a.length - 1);
+    }
+    pop() {
+        const arr = this.a;
+        const top = arr[0];
+        const last = arr.pop();
+        if (arr.length > 0) {
+            arr[0] = last;
+            this._siftDown(0);
+        }
+        return top;
+    }
+    _siftUp(i) {
+        const arr = this.a, cmp = this.cmp;
+        while (i > 0) {
+            const p = (i - 1) >> 1;         // parent index (bit shift = floor/2)
+            if (cmp(arr[i], arr[p]) >= 0) break;
+            [arr[i], arr[p]] = [arr[p], arr[i]];
+            i = p;
+        }
+    }
+    _siftDown(i) {
+        const arr = this.a, cmp = this.cmp;
+        const n = arr.length;
+        while (true) {
+            let l = i * 2 + 1;
+            let r = l + 1;
+            let smallest = i;
+            if (l < n && cmp(arr[l], arr[smallest]) < 0) smallest = l;
+            if (r < n && cmp(arr[r], arr[smallest]) < 0) smallest = r;
+            if (smallest === i) break;
+            [arr[i], arr[smallest]] = [arr[smallest], arr[i]];
+            i = smallest;
+        }
+    }
+
+/* --- Example usage ---
+const h = new Heap();       // defaults to number max-heap
+h.push(5); h.push(1); h.push(7); h.push(3);
+console.log(h.pop()); // 1
+console.log(h.peek()); // 3
+console.log(h.size()); // 5
+*/
 }
 
 /**
- * Heap - min
+ * Heap - min (Legacy)
  */
 class MinHeap {
     constructor() {
@@ -276,7 +341,7 @@ class MinHeap {
 }
 
 /**
- * Heap - max
+ * Heap - max (Legacy)
  */
 class MaxHeap {
     constructor() {
@@ -346,7 +411,7 @@ class MaxHeap {
 }
 
 /**
- * Heap - min tuples
+ * Heap - min tuples (Legacy)
  */
 class TupleMinHeap {
     constructor() {
@@ -424,7 +489,7 @@ class TupleMinHeap {
 }
 
 /**
- * Heap - max tuples
+ * Heap - max tuples (Legacy)
  */
 class TupleMaxHeap {
     constructor() {

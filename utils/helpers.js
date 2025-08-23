@@ -7,22 +7,22 @@ class ListNode {
         this.next = next;
         this.id = id;
     }
-}
 
-function createList(values) {
-    let list = [];
-    let current = null;
+    static createList(values) {
+        let list = [];
+        let current = null;
 
-    for (let i = 0; i < values.length; i++) {
-        let val = values[i];
-        let next = new ListNode(val, current, values.length - i);
+        for (let i = 0; i < values.length; i++) {
+            let val = values[i];
+            let next = new ListNode(val, current, values.length - i);
 
-        current = next;
+            current = next;
 
-        list.unshift(next);
+            list.unshift(next);
+        }
+
+        return list;
     }
-
-    return list;
 }
 
 /**
@@ -35,40 +35,40 @@ class BinaryTreeNode {
         this.left  = left;
         this.right = right;
     }
-}
 
-function arrayToTree(arr) {
-    if (!arr.length) return null;
+    static arrayToTree(arr) {
+        if (!arr.length) return null;
 
-    // 1) Create the root
-    const root = new BinaryTreeNode(arr[0]);
-    const queue = [root];
-    let i = 1;
+        // 1) Create the root
+        const root = new BinaryTreeNode(arr[0]);
+        const queue = [root];
+        let i = 1;
 
-    // 2) For each real node, pull two slots from the array
-    while (i < arr.length && queue.length) {
-        const node = queue.shift();
+        // 2) For each real node, pull two slots from the array
+        while (i < arr.length && queue.length) {
+            const node = queue.shift();
 
-        // Left child
-        if (i < arr.length) {
-            const v = arr[i++];
-            if (v !== null) {
-                node.left = new BinaryTreeNode(v);
-                queue.push(node.left);
+            // Left child
+            if (i < arr.length) {
+                const v = arr[i++];
+                if (v !== null) {
+                    node.left = new BinaryTreeNode(v);
+                    queue.push(node.left);
+                }
+            }
+
+            // Right child
+            if (i < arr.length) {
+                const v = arr[i++];
+                if (v !== null) {
+                    node.right = new BinaryTreeNode(v);
+                    queue.push(node.right);
+                }
             }
         }
 
-        // Right child
-        if (i < arr.length) {
-            const v = arr[i++];
-            if (v !== null) {
-                node.right = new BinaryTreeNode(v);
-                queue.push(node.right);
-            }
-        }
+        return root;
     }
-
-    return root;
 }
 
 /**
@@ -221,12 +221,23 @@ class Heap {
         this.a = [];                        // internal array storage
         this.cmp = cmp;                     // comparator: returns negative if a<b
     }
+
+    heapify(array) {
+        this.a = [...array];
+        for (let i = Math.floor(this.a.length / 2) - 1; i >= 0; i--) {
+            this._siftDown(i);
+        }
+    }
+
     size() { return this.a.length; }
+
     peek() { return this.a[0]; }
+
     push(x) {
         this.a.push(x);
         this._siftUp(this.a.length - 1);
     }
+
     pop() {
         const arr = this.a;
         const top = arr[0];
@@ -237,6 +248,7 @@ class Heap {
         }
         return top;
     }
+
     _siftUp(i) {
         const arr = this.a, cmp = this.cmp;
         while (i > 0) {
@@ -246,6 +258,7 @@ class Heap {
             i = p;
         }
     }
+
     _siftDown(i) {
         const arr = this.a, cmp = this.cmp;
         const n = arr.length;
@@ -268,6 +281,18 @@ console.log(h.pop()); // 1
 console.log(h.peek()); // 3
 console.log(h.size()); // 5
 */
+}
+
+class Queue {
+    constructor() {
+        this._a = [];
+        this._h = 0;
+    }
+    enqueue(x) { this._a.push(x); }
+    dequeue() { return this._a[this._h++]; }
+    peak() { return this._a[this._h]; }
+    isEmpty() { return this._h >= this._a.length; }
+    size() { return this._a.length - this._h; }
 }
 
 /**
@@ -570,16 +595,11 @@ class TupleMaxHeap {
  * Proper queue implementation with O(1) ops
  */
 
-class Queue {
-    constructor() {
-        this._a = [];
-        this._h = 0;
-    }
-    enqueue(x) { this._a.push(x); }
-    dequeue() { return this._a[this._h++]; }
-    peak() { return this._a[this._h]; }
-    isEmpty() { return this._h >= this._a.length; }
-    size() { return this._a.length - this._h; }
+module.exports = {
+    ListNode,
+    BinaryTreeNode,
+    TrieNode,
+    Trie,
+    Heap,
+    Queue
 }
-
-

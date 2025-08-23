@@ -1,28 +1,35 @@
+import { Heap } from "../utils/helpers.js"
+
 /**
- * @param {number} x
- * @param {number} n
+ * @param {number[]} nums
+ * @param {number} k
  * @return {number}
  */
-var myPow = function(x, n) {
-    if (n === 0) return 1;
-
-    const getAbsPow = (x, pow) => {
-        if (pow === 0) return 1;
-        if (pow === 1) return x;
-
-        return getAbsPow(x * x, Math.floor(pow / 2)) * getAbsPow(x, pow % 2)
+var findKthLargest = function(nums, k) {
+    if (!nums || (k > nums.length)) {
+        return null;
     }
 
-    return getAbsPow((n > 0) ? x : 1 / x, Math.abs(n));
+    let candidates = new Heap();
+    candidates.heapify(nums.slice(0, k));
+
+    for (let i = k; i < nums.length; i++) {
+        if (nums[i] > candidates.peek()) {
+            candidates.pop()
+            candidates.push(nums[i]);
+        }
+    }
+
+    return candidates.peek();
 };
 
 const executionStart = Date.now();
 
 //----------------------------------------------------------
 
-const x = 2.00000, n = 10
+const nums = [3,2,3,1,2,4,5,5,6], k = 4
 
-const result = myPow(x, n);
+const result = findKthLargest(nums, k);
 console.log(result);
 
 //----------------------------------------------------------

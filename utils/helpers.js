@@ -218,8 +218,8 @@ class Trie {
  */
 class Heap {
     constructor(cmp = (a, b) => a - b) {
-        this.a = [];                        // internal array storage
-        this.cmp = cmp;                     // comparator: returns negative if a<b
+        this.a = [];        // internal array storage
+        this.cmp = cmp;     // comparator: returns negative if a<b
     }
 
     heapify(array) {
@@ -274,13 +274,13 @@ class Heap {
         }
     }
 
-/* --- Example usage ---
-const h = new Heap();       // defaults to number max-heap
-h.push(5); h.push(1); h.push(7); h.push(3);
-console.log(h.pop()); // 1
-console.log(h.peek()); // 3
-console.log(h.size()); // 5
-*/
+    /* --- Example usage ---
+    const h = new Heap();  // defaults to number min-heap
+    h.push(5); h.push(1);  h.push(7); h.push(3);
+    console.log(h.pop());  // 1
+    console.log(h.peek()); // 3
+    console.log(h.size()); // 5
+    */
 }
 
 class Queue {
